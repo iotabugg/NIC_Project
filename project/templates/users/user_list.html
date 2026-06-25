@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Users — EMS Portal{% endblock %}
+{% block page_title %}Users{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h2 class="text-lg font-semibold text-gray-900">User Management</h2>
+    <p class="text-sm text-gray-500">Users grouped by state and district for fast navigation.</p>
+  </div>
+  <a href="/users/register/" class="bg-blue-900 text-white text-sm px-4 py-2 rounded hover:bg-blue-800 transition">
+    + Register User
+  </a>
+</div>
+
+<div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+  <input id="search-input" type="text" placeholder="Search by username, email, state, or district"
+         class="w-full sm:w-80 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+</div>
+
+<div id="users-grouped" class="space-y-8">
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center text-gray-400" id="users-loading">
+    Loading users...
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  Auth.redirectIfNotLoggedIn();
+
+  function createUserCard(user) {
+    return `
+      <div class="rounded-lg border border-gray-200 p-4 bg-white shadow-sm">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="text-sm text-gray-900 font-semibold">${user.username || '—'}</div>
+            <div class="text-sm text-gray-500">${user.email || '—'}</div>
+            <div class="text-xs text-gray-400">${user.mobile || '—'}</div>
+          </div>
+          <a href="/users/edit/${user.id}/" class="text-blue-600 hover:underline text-sm">Edit</a>
+        </div>
+        <div class="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-600">
+          <div><span class="font-medium text-gray-700">Role:</span> ${user.role || '—'}</div>
+          <div><span class="font-medium text-gray-700">Joined:</span> ${user.date_joined ? new Date(user.date_joined).toLocaleDateString() : '—'}</div>
+          <div><span class="font-medium text-gray-700">State:</span> ${user.state || 'Unassigned'}</div>
+          <div><span class="font-medium text-gray-700">District:</span> ${user.district || 'Unassigned'}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderUsers(users) {
+    const container = document.getElementById('users-grouped');
+    if (!users || !Array.isArray(users) || users.length === 0) {
+      container.innerHTML = '<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center text-gray-400">No users found.</div>';
+      return;
+    }
+
+    const grouped = {};
+    users.forEach(user => {
+      const state = user.state || 'Unassigned';
+      const district = user.district || 'Unassigned';
+      grouped[state] ??= {};
+      grouped[state][district] ??= [];
+      grouped[state][district].push(user);
+    });
+
+    const stateKeys = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
+    container.innerHTML = stateKeys.map(state => {
+      const districtKeys = Object.keys(grouped[state]).sort((a, b) => a.localeCompare(b));
+      return `
+        <section class="space-y-4">
+          <div class="flex items-center justify-between gap-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div>
+              <div class="text-sm text-blue-900 font-semibold">${state}</div>
+              <div class="text-xs text-blue-600">${districtKeys.length} district${districtKeys.length === 1 ? '' : 's'}</div>
+            </div>
+            <div class="text-sm text-blue-900">${users.filter(u => (u.state || 'Unassigned') === state).length} users</div>
+          </div>
+          <div class="space-y-6">
+            ${districtKeys.map(district => `
+              <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                <div class="flex items-center justify-between gap-4 pb-4 border-b border-gray-200">
+                  <div>
+                    <div class="text-sm font-semibold text-gray-900">${district}</div>
+                    <div class="text-xs text-gray-500">${grouped[state][district].length} user${grouped[state][district].length === 1 ? '' : 's'}</div>
+                  </div>
+                </div>
+                <div class="mt-4 grid gap-4 md:grid-cols-2">
+                  ${grouped[state][district].map(createUserCard).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </section>
+      `;
+    }).join('');
+  }
+
+  document.getElementById('search-input').addEventListener('input', function () {
+    const query = this.value.toLowerCase();
+    document.querySelectorAll('#users-grouped section').forEach(section => {
+      const text = section.textContent.toLowerCase();
+      section.style.display = text.includes(query) ? '' : 'none';
+    });
+  });
+
+  API.get('/api/users/list/').then(data => {
+    document.getElementById('users-loading').remove();
+    renderUsers(data);
+  });
+</script>
+{% endblock %}

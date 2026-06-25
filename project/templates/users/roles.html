@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Roles — EMS Portal{% endblock %}
+{% block page_title %}Roles{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <p class="text-sm text-gray-500">Roles define available user permissions.</p>
+  </div>
+  <a href="{% url 'users-role-create' %}" class="bg-blue-900 text-white text-sm px-4 py-2 rounded hover:bg-blue-800 transition">
+    + Add Role
+  </a>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50 border-b border-gray-200">
+      <tr>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Name</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Permissions</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for role in roles %}
+      <tr class="hover:bg-gray-50 transition">
+        <td class="px-4 py-3 font-medium text-gray-800">{{ role.name }}</td>
+        <td class="px-4 py-3 text-gray-600">{{ role.permissions.all|join:", " }}</td>
+        <td class="px-4 py-3">
+          <div class="flex items-center gap-3">
+            <a href="{% url 'users-role-edit' role.pk %}" class="text-blue-600 hover:underline">Edit</a>
+            <form method="post" action="{% url 'users-role-delete' role.pk %}" class="inline" onsubmit="return confirm('Delete this role?');">
+              {% csrf_token %}
+              <button type="submit" class="text-red-500 hover:underline">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="3" class="px-4 py-8 text-center text-gray-400">No roles found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

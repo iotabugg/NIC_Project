@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Offices — EMS Portal{% endblock %}
+{% block page_title %}Offices{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+  <p class="text-sm text-gray-500">{{ offices.count }} office{{ offices.count|pluralize }} total</p>
+  <a href="{% url 'office-create' %}"
+     class="bg-blue-900 text-white text-sm px-4 py-2 rounded hover:bg-blue-800 transition">
+    + Add Office
+  </a>
+</div>
+
+<div class="mb-4">
+  <input type="text" id="search-input" placeholder="Search offices..."
+         class="w-full max-w-sm border border-gray-300 rounded px-3 py-2 text-sm
+                focus:outline-none focus:ring-2 focus:ring-blue-500" />
+</div>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50 border-b border-gray-200">
+      <tr>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">#</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Name</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Code</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Type</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">District</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">State</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for office in offices %}
+      <tr class="hover:bg-gray-50 transition office-row">
+        <td class="px-4 py-3 text-gray-400">{{ forloop.counter }}</td>
+        <td class="px-4 py-3 font-medium text-gray-800">{{ office.name }}</td>
+        <td class="px-4 py-3 text-gray-600">{{ office.code }}</td>
+        <td class="px-4 py-3 text-gray-600">{{ office.get_office_type_display }}</td>
+        <td class="px-4 py-3 text-gray-600">{{ office.district.name }}</td>
+        <td class="px-4 py-3 text-gray-600">{{ office.district.state.name }}</td>
+        <td class="px-4 py-3">
+          {% if office.is_active %}
+            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Active</span>
+          {% else %}
+            <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Inactive</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3">
+          <div class="flex items-center gap-3">
+            <a href="{% url 'office-edit' office.pk %}" class="text-blue-600 hover:underline">Edit</a>
+            <form method="post" action="{% url 'office-delete' office.pk %}"
+                  onsubmit="return confirm('Deactivate {{ office.name }}?')">
+              {% csrf_token %}
+              <button type="submit" class="text-red-500 hover:underline">Deactivate</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8" class="px-4 py-8 text-center text-gray-400">No offices found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  Auth.redirectIfNotLoggedIn();
+  document.getElementById('search-input').addEventListener('input', function () {
+    const query = this.value.toLowerCase();
+    document.querySelectorAll('.office-row').forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
+    });
+  });
+</script>
+{% endblock %}

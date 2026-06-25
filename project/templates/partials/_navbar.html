@@ -1,0 +1,85 @@
+<header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between relative">
+  <h2 class="text-base font-semibold text-gray-700">{% block page_title %}{% endblock %}</h2>
+
+  <div class="flex items-center gap-4 text-sm text-gray-600">
+    <!-- User Dropdown -->
+    <div class="relative">
+      <button id="user-menu-btn"
+              class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-100 transition font-medium text-gray-700">
+        <span id="navbar-username"></span>
+        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+        </svg>
+      </button>
+
+      <!-- Dropdown Menu -->
+      <div id="user-menu-dropdown"
+           class="hidden absolute right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-50 min-w-max">
+        <a href="" id="profile-link"
+           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+          View Profile
+        </a>
+        <a href="/users/change-password/"
+           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 border-t border-gray-200">
+          Change Password
+        </a>
+      </div>
+    </div>
+
+    <span id="navbar-role"
+          class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-semibold uppercase"></span>
+  </div>
+</header>
+
+<script>
+  // Toggle user menu dropdown
+  const userMenuBtn = document.getElementById('user-menu-btn');
+  const userMenuDropdown = document.getElementById('user-menu-dropdown');
+
+  if (userMenuBtn) {
+    userMenuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      userMenuDropdown.classList.toggle('hidden');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+      userMenuDropdown.classList.add('hidden');
+    });
+  }
+</script>
+
+<!-- Profile Modal (hidden by default) -->
+<div id="profile-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-start justify-center z-50 pt-20">
+  <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl">
+    <div class="flex items-center justify-between px-6 py-4 border-b">
+      <h3 class="text-lg font-semibold">Profile</h3>
+      <button id="profile-modal-close" class="text-gray-600 hover:text-gray-800">✕</button>
+    </div>
+    <div class="p-6 space-y-4" id="profile-modal-body">
+      <!-- Filled dynamically -->
+      <div id="profile-user-info" class="space-y-1">
+        <p class="text-sm"><strong>Username:</strong> <span id="pf-username"></span></p>
+        <p class="text-sm"><strong>Full name:</strong> <span id="pf-fullname"></span></p>
+        <p class="text-sm"><strong>Email:</strong> <span id="pf-email"></span></p>
+        <p class="text-sm"><strong>Mobile:</strong> <span id="pf-mobile"></span></p>
+        <p class="text-sm"><strong>Role:</strong> <span id="pf-role"></span></p>
+        <p class="text-sm"><strong>State:</strong> <span id="pf-state"></span></p>
+        <p class="text-sm"><strong>District:</strong> <span id="pf-district"></span></p>
+      </div>
+
+      <div id="profile-employee-section" class="hidden border-t pt-4">
+        <h4 class="text-sm font-semibold">Employee Details</h4>
+        <p class="text-sm"><strong>Employee ID:</strong> <span id="pf-emp-id"></span></p>
+        <p class="text-sm"><strong>Office:</strong> <span id="pf-emp-office"></span></p>
+        <p class="text-sm"><strong>Department:</strong> <span id="pf-emp-dept"></span></p>
+        <p class="text-sm"><strong>Designation:</strong> <span id="pf-emp-designation"></span></p>
+        <p class="text-sm"><strong>Employment Type:</strong> <span id="pf-emp-type"></span></p>
+        <p class="text-sm"><strong>Employment Status:</strong> <span id="pf-emp-status"></span></p>
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t text-right">
+      <a id="profile-edit-link" href="#" class="bg-blue-900 text-white px-4 py-2 rounded text-sm">Edit Profile</a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ employee.employee_id }} — EMS Portal{% endblock %}
+{% block page_title %}Employee Profile{% endblock %}
+
+{% block content %}
+
+<div class="max-w-4xl space-y-5">
+
+  <!-- Header card -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex items-center justify-between">
+    <div>
+      <h2 class="text-xl font-bold text-gray-800">{{ employee.full_name|default:employee.user.username }}</h2>
+      <p class="text-sm text-gray-500 mt-0.5">{{ employee.designation.name }} &mdash; {{ employee.department.name }}</p>
+      <p class="text-xs font-mono text-gray-400 mt-1">{{ employee.employee_id }}</p>
+    </div>
+    <div class="flex items-center gap-3">
+      {% if employee.employment_status == 'ACTIVE' %}
+        <span class="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">Active</span>
+      {% else %}
+        <span class="text-sm bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium">{{ employee.employment_status }}</span>
+      {% endif %}
+      <a href="{% url 'employee-edit' employee.pk %}"
+         class="bg-blue-900 text-white text-sm px-4 py-2 rounded hover:bg-blue-800 transition">
+        Edit
+      </a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-5">
+
+    <!-- Personal details -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+      <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Personal Details</h3>
+      <dl class="space-y-3 text-sm">
+        <div class="flex justify-between">
+          <dt class="text-gray-500">Full Name</dt>
+          <dd class="font-medium text-gray-800">{{ employee.full_name|default:"—" }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">Email</dt>
+          <dd class="font-medium text-gray-800">{{ employee.email|default:"—" }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">Gender</dt>
+          <dd class="font-medium text-gray-800">{{ employee.get_gender_display|default:"—" }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">Date of Birth</dt>
+          <dd class="font-medium text-gray-800">{{ employee.date_of_birth|default:"—" }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">Phone</dt>
+          <dd class="font-medium text-gray-800">{{ employee.phone|default:"—" }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">Address</dt>
+          <dd class="font-medium text-gray-800 text-right max-w-xs">{{ employee.address|default:"—" }}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <!-- Service details -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+      <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Service Details</h3>
+      <dl class="space-y-3 text-sm">
+        <div class="flex justify-between">
+          <dt class="text-gray-500">Office</dt>
+          <dd class="font-medium text-gray-800">{{ employee.office.name }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">District</dt>
+          <dd class="font-medium text-gray-800">{{ employee.office.district.name }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">State</dt>
+          <dd class="font-medium text-gray-800">{{ employee.office.district.state.name }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">Department</dt>
+          <dd class="font-medium text-gray-800">{{ employee.department.name }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">Designation</dt>
+          <dd class="font-medium text-gray-800">{{ employee.designation.name }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">Date of Joining</dt>
+          <dd class="font-medium text-gray-800">{{ employee.date_of_joining }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">Employment Type</dt>
+          <dd class="font-medium text-gray-800">{{ employee.get_employment_type_display }}</dd>
+        </div>
+      </dl>
+    </div>
+
+  </div>
+
+  <!-- System details -->
+  {% if system %}
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">System Details</h3>
+    <div class="grid grid-cols-3 gap-4 text-sm">
+      <div><p class="text-gray-500">Computer Name</p><p class="font-medium mt-0.5">{{ system.computer_name|default:"—" }}</p></div>
+      <div><p class="text-gray-500">IP Address</p><p class="font-medium mt-0.5">{{ system.ip_address|default:"—" }}</p></div>
+      <div><p class="text-gray-500">MAC Address</p><p class="font-medium mt-0.5">{{ system.mac_address|default:"—" }}</p></div>
+      <div><p class="text-gray-500">OS</p><p class="font-medium mt-0.5">{{ system.get_operating_system_display|default:"—" }}</p></div>
+      <div><p class="text-gray-500">OS Version</p><p class="font-medium mt-0.5">{{ system.os_version|default:"—" }}</p></div>
+      <div><p class="text-gray-500">Domain Username</p><p class="font-medium mt-0.5">{{ system.domain_username|default:"—" }}</p></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Transfer history -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Transfer History</h3>
+      <a href="{% url 'transfer-list' %}?employee={{ employee.pk }}"
+         class="text-xs text-blue-600 hover:underline">View all</a>
+    </div>
+    <div id="transfer-history" class="text-sm text-gray-400">Loading...</div>
+  </div>
+
+  <!-- Back link -->
+  <div>
+    <a href="{% url 'employee-list' %}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to Employees</a>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  Auth.redirectIfNotLoggedIn();
+
+  // Load transfer history for this employee
+  async function loadTransfers() {
+    const data = await API.get('/api/records/employees/{{ employee.pk }}/transfers/');
+    const container = document.getElementById('transfer-history');
+    if (!data.data || data.data.length === 0) {
+      container.textContent = 'No transfers on record.';
+      return;
+    }
+    container.innerHTML = data.data.map(t => `
+      <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+        <span class="text-gray-600">${t.from_office_name} &rarr; ${t.to_office_name}</span>
+        <span class="text-gray-400 text-xs">${t.transfer_date}</span>
+        <span class="text-xs px-2 py-0.5 rounded-full font-medium
+          ${t.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
+            t.status === 'PENDING'   ? 'bg-yellow-100 text-yellow-700' :
+            t.status === 'APPROVED'  ? 'bg-blue-100 text-blue-700' :
+                                       'bg-red-100 text-red-700'}">
+          ${t.status}
+        </span>
+      </div>
+    `).join('');
+  }
+
+  loadTransfers();
+</script>
+{% endblock %}
