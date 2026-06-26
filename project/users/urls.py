@@ -1,27 +1,55 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .views import (
     RegisterUserView,
     UserListView,
+    UserDetailView,
     EditUserProfileView,
     CreatePermissionView,
     CreateRoleView,
     TransferUserView,
     DashboardView,
     PasswordChangeView,
+    RoleListView,
+    StateListView,
+    DistrictListView,
+    StateDistrictsView,
 )
+
+
+# --- Custom token: adds username + role into JWT payload ---
+class CustomTokenSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['username'] = user.username
+        token['user_id'] = user.id
+        token['role'] = user.get_role_name() or ''
+        return token
+
+
+class CustomTokenView(TokenObtainPairView):
+    serializer_class = CustomTokenSerializer
+
 
 urlpatterns = [
     # Auth
-    path('login/',   TokenObtainPairView.as_view(), name='token_obtain'),
-    path('refresh/', TokenRefreshView.as_view(),    name='token_refresh'),
+    path('login/',   CustomTokenView.as_view(), name='token_obtain'),
+    path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     # User management
-    path('register/',         RegisterUserView.as_view(),    name='register'),
-    path('list/',             UserListView.as_view(),         name='user_list'),
-    path('edit/<int:pk>/',    EditUserProfileView.as_view(),  name='edit_profile'),
-    path('password-change/',  PasswordChangeView.as_view(),   name='password_change'),
+    path('register/',        RegisterUserView.as_view(),   name='register'),
+    path('list/',            UserListView.as_view(),        name='user_list'),
+    path('edit/<int:pk>/',   EditUserProfileView.as_view(), name='edit_profile'),
+    path('password-change/', PasswordChangeView.as_view(),  name='password_change'),
+
+    # Reference data
+    path('roles/',                    RoleListView.as_view(),       name='roles_list'),
+    path('states/',                   StateListView.as_view(),      name='states_list'),
+    path('states/<int:state_id>/districts/', StateDistrictsView.as_view(), name='state_districts'),
+    path('districts/',                DistrictListView.as_view(),   name='districts_list'),
 
     # Role & permission management (STATE_ADMIN only)
     path('create-role/',       CreateRoleView.as_view(),       name='create_role'),

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit User — EMS Portal{% endblock %}
+{% block page_title %}Edit User{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl">
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <form id="edit-user-form" class="space-y-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+          <input id="username" type="text" required
+                 class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input id="email" type="email" required
+                 class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
+          <input id="mobile" type="text" required
+                 class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div></div>
+      </div>
+
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
+        <input id="profile_image" type="file" accept="image/*"
+               class="w-full text-sm text-gray-700" />
+      </div>
+
+      <div id="form-error" class="hidden text-red-600 text-sm"></div>
+
+      <div class="flex items-center gap-3 pt-5 border-t border-gray-100">
+        <button type="submit"
+                class="bg-blue-900 text-white text-sm px-5 py-2 rounded hover:bg-blue-800 transition">
+          Save Changes
+        </button>
+        <a href="/users/" class="text-sm text-gray-500 hover:text-gray-700">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  Auth.redirectIfNotLoggedIn();
+  const userId = {{ user_id }};
+
+  async function loadUser() {
+    const user = await API.get(`/api/users/edit/${userId}/`);
+    if (!user || user.error) {
+      document.getElementById('form-error').textContent = user.error || 'Unable to load user.';
+      document.getElementById('form-error').classList.remove('hidden');
+      return;
+    }
+
+    document.getElementById('username').value = user.username || '';
+    document.getElementById('email').value = user.email || '';
+    document.getElementById('mobile').value = user.mobile || '';
+  }
+
+  document.getElementById('edit-user-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    const errorEl = document.getElementById('form-error');
+    errorEl.classList.add('hidden');
+
+    const formData = new FormData();
+    formData.append('username', document.getElementById('username').value);
+    formData.append('email', document.getElementById('email').value);
+    formData.append('mobile', document.getElementById('mobile').value);
+    const fileInput = document.getElementById('profile_image');
+    if (fileInput.files.length) {
+      formData.append('profile_image', fileInput.files[0]);
+    }
+
+    const res = await fetch(`/api/users/edit/${userId}/`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${Auth.getToken()}`,
+      },
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      errorEl.textContent = data.error || data.detail || JSON.stringify(data);
+      errorEl.classList.remove('hidden');
+      return;
+    }
+
+    window.location.href = '/users/';
+  });
+
+  loadUser();
+</script>
+{% endblock %}

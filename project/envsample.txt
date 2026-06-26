@@ -1,0 +1,9 @@
+DB_NAME=user_management_db
+DB_ENGINE=django.db.backends.postgresql
+DB_HOST=localhost
+DB_PASSWORD=password
+DB_PORT=5432
+DB_USER=username
+DEBUG=TRUE
+NPM_BIN_PATH= [run 'where npm' in home dir and paste the output path here]
+SECRET_KEY=---key---

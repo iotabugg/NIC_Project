@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Employees — EMS Portal{% endblock %}
+{% block page_title %}Employees{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+  <p class="text-sm text-gray-500">{{ employees.count }} employee{{ employees.count|pluralize }} total</p>
+  <a href="{% url 'employee-create' %}"
+     class="bg-blue-900 text-white text-sm px-4 py-2 rounded hover:bg-blue-800 transition">
+    + Add Employee
+  </a>
+</div>
+
+<!-- Filters -->
+<div class="flex flex-wrap gap-3 mb-4">
+  <input type="text" id="search-input" placeholder="Search employees..."
+         class="border border-gray-300 rounded px-3 py-2 text-sm w-64
+                focus:outline-none focus:ring-2 focus:ring-blue-500" />
+
+  <select id="status-filter"
+          class="border border-gray-300 rounded px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <option value="">All Statuses</option>
+    <option value="ACTIVE">Active</option>
+    <option value="INACTIVE">Inactive</option>
+    <option value="SUSPENDED">Suspended</option>
+    <option value="TERMINATED">Terminated</option>
+    <option value="RETIRED">Retired</option>
+  </select>
+
+  <select id="type-filter"
+          class="border border-gray-300 rounded px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <option value="">All Types</option>
+    <option value="PERMANENT">Permanent</option>
+    <option value="CONTRACT">Contract</option>
+    <option value="PROBATION">Probation</option>
+    <option value="DEPUTATION">Deputation</option>
+    <option value="TEMPORARY">Temporary</option>
+  </select>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50 border-b border-gray-200">
+      <tr>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">ID</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Name</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Office</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Department</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Designation</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Type</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for emp in employees %}
+      <tr class="hover:bg-gray-50 transition emp-row"
+          data-status="{{ emp.employment_status }}"
+          data-type="{{ emp.employment_type }}">
+        <td class="px-4 py-3 font-mono text-gray-600">{{ emp.employee_id }}</td>
+        <td class="px-4 py-3 font-medium text-gray-800">
+          <a href="{% url 'employee-detail' emp.pk %}"
+             class="text-blue-700 hover:underline">
+            {{ emp.full_name|default:emp.user.username }}
+          </a>
+        </td>
+        <td class="px-4 py-3 text-gray-600">{{ emp.office.name }}</td>
+        <td class="px-4 py-3 text-gray-600">{{ emp.department.name }}</td>
+        <td class="px-4 py-3 text-gray-600">{{ emp.designation.name }}</td>
+        <td class="px-4 py-3 text-gray-500">{{ emp.get_employment_type_display }}</td>
+        <td class="px-4 py-3">
+          {% if emp.employment_status == 'ACTIVE' %}
+            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Active</span>
+          {% elif emp.employment_status == 'SUSPENDED' %}
+            <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium">Suspended</span>
+          {% elif emp.employment_status == 'TERMINATED' %}
+            <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Terminated</span>
+          {% elif emp.employment_status == 'RETIRED' %}
+            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">Retired</span>
+          {% else %}
+            <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">{{ emp.employment_status }}</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3">
+          <div class="flex items-center gap-3">
+            <a href="{% url 'employee-detail' emp.pk %}" class="text-gray-500 hover:text-blue-600">View</a>
+            <a href="{% url 'employee-edit' emp.pk %}" class="text-blue-600 hover:underline">Edit</a>
+            <form method="post" action="{% url 'employee-delete' emp.pk %}"
+                  onsubmit="return confirm('Deactivate {{ emp.employee_id }}?')">
+              {% csrf_token %}
+              <button type="submit" class="text-red-500 hover:underline">Deactivate</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8" class="px-4 py-8 text-center text-gray-400">No employees found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  Auth.redirectIfNotLoggedIn();
+
+  function applyFilters() {
+    const query  = document.getElementById('search-input').value.toLowerCase();
+    const status = document.getElementById('status-filter').value;
+    const type   = document.getElementById('type-filter').value;
+
+    document.querySelectorAll('.emp-row').forEach(row => {
+      const matchText   = row.textContent.toLowerCase().includes(query);
+      const matchStatus = !status || row.dataset.status === status;
+      const matchType   = !type   || row.dataset.type   === type;
+      row.style.display = (matchText && matchStatus && matchType) ? '' : 'none';
+    });
+  }
+
+  document.getElementById('search-input').addEventListener('input', applyFilters);
+  document.getElementById('status-filter').addEventListener('change', applyFilters);
+  document.getElementById('type-filter').addEventListener('change', applyFilters);
+</script>
+{% endblock %}

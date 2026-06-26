@@ -51,15 +51,35 @@ class UserSerializer(serializers.ModelSerializer):
     role = serializers.StringRelatedField()
     state = serializers.StringRelatedField()
     district = serializers.StringRelatedField()
+    employee = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
-            'id', 'username', 'email', 'mobile',
+            'id', 'username', 'first_name', 'last_name', 'email', 'mobile',
             'role', 'state', 'district',
-            'profile_image', 'date_joined',
+            'profile_image', 'date_joined', 'employee',
         ]
         read_only_fields = fields
+
+    def get_employee(self, obj):
+        # Return nested employee data when an Employee profile exists for this user
+        try:
+            emp = obj.employee_profile
+        except Exception:
+            return None
+
+        # Avoid importing heavy serializers in case of circular imports — build a minimal dict
+        return {
+            'id': emp.id,
+            'employee_id': getattr(emp, 'employee_id', None),
+            'full_name': getattr(emp, 'full_name', None),
+            'office': getattr(emp.office, 'name', None) if getattr(emp, 'office', None) else None,
+            'department': getattr(emp.department, 'name', None) if getattr(emp, 'department', None) else None,
+            'designation': getattr(emp.designation, 'name', None) if getattr(emp, 'designation', None) else None,
+            'employment_type': getattr(emp, 'employment_type', None),
+            'employment_status': getattr(emp, 'employment_status', None),
+        }
 
 
 class EditProfileSerializer(serializers.ModelSerializer):

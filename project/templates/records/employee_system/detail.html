@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ system.employee.employee_id }} — System Details — EMS Portal{% endblock %}
+{% block page_title %}System Details{% endblock %}
+
+{% block content %}
+
+<div class="max-w-4xl space-y-5">
+
+  <!-- Header card -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex items-center justify-between">
+    <div>
+      <h2 class="text-xl font-bold text-gray-800">{{ system.employee.full_name }}</h2>
+      <p class="text-sm text-gray-500 mt-0.5">{{ system.employee.employee_id }}</p>
+    </div>
+    <div class="flex items-center gap-3">
+      {% if system.is_active %}
+        <span class="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">Active</span>
+      {% else %}
+        <span class="text-sm bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium">Inactive</span>
+      {% endif %}
+      <a href="{% url 'employee-system-edit' system.pk %}"
+         class="bg-blue-900 text-white text-sm px-4 py-2 rounded hover:bg-blue-800 transition">
+        Edit
+      </a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-5">
+
+    <!-- Computer Details -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+      <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Computer Details</h3>
+      <dl class="space-y-3 text-sm">
+        <div class="flex justify-between">
+          <dt class="text-gray-500">Computer Name</dt>
+          <dd class="font-medium text-gray-800">{{ system.computer_name|default:"—" }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">IP Address</dt>
+          <dd class="font-medium text-gray-800 font-mono">{{ system.ip_address|default:"—" }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">MAC Address</dt>
+          <dd class="font-medium text-gray-800 font-mono text-xs">{{ system.mac_address|default:"—" }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">Operating System</dt>
+          <dd class="font-medium text-gray-800">{{ system.get_operating_system_display|default:"—" }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">OS Version</dt>
+          <dd class="font-medium text-gray-800">{{ system.os_version|default:"—" }}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <!-- Access Details -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+      <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Access Details</h3>
+      <dl class="space-y-3 text-sm">
+        <div class="flex justify-between">
+          <dt class="text-gray-500">Domain Username</dt>
+          <dd class="font-medium text-gray-800">{{ system.domain_username|default:"—" }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">Assigned At</dt>
+          <dd class="font-medium text-gray-800">{{ system.assigned_at|date:"d M Y"|default:"—" }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">Created At</dt>
+          <dd class="font-medium text-gray-800">{{ system.created_at|date:"d M Y H:i"|default:"—" }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-gray-500">Updated At</dt>
+          <dd class="font-medium text-gray-800">{{ system.updated_at|date:"d M Y H:i"|default:"—" }}</dd>
+        </div>
+      </dl>
+    </div>
+
+  </div>
+
+  <!-- System Notes -->
+  {% if system.system_notes %}
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">System Notes</h3>
+    <p class="text-sm text-gray-700 whitespace-pre-line">{{ system.system_notes }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Action Buttons -->
+  <div class="flex items-center gap-3">
+    <a href="{% url 'employee-system-edit' system.pk %}"
+       class="bg-blue-900 text-white text-sm px-4 py-2 rounded hover:bg-blue-800 transition">
+      Edit Details
+    </a>
+    <a href="{% url 'employee-system-list' %}"
+       class="text-sm text-gray-500 hover:text-gray-700">
+      Back to List
+    </a>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>Auth.redirectIfNotLoggedIn();</script>
+{% endblock %}

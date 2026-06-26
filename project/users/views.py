@@ -1,10 +1,11 @@
+from django.shortcuts import get_object_or_404
+from django.db import transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from django.db import transaction
 
-from .models import User, Role, Permission, District, UserTransfer
+from .models import User, Role, Permission, State, District, UserTransfer
 from .permissions import IsStateAdmin, IsStateOrDistrictAdmin
 from .serializers import (
     RegisterSerializer,
@@ -51,8 +52,36 @@ class UserListView(APIView):
         return Response(UserSerializer(users, many=True).data)
 
 
+class UserDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        role_name = request.user.get_role_name()
+
+        if request.user.id != pk:
+            if role_name == 'STATE_ADMIN':
+                pass
+            elif role_name == 'DISTRICT_ADMIN':
+                if not User.objects.filter(id=pk, district=request.user.district).exists():
+                    return Response(
+                        {'error': 'You can only view users in your district.'},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+            else:
+                return Response(
+                    {'error': 'You cannot view other users.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+        user = get_object_or_404(User, id=pk)
+        return Response(UserSerializer(user).data)
+
+
 class EditUserProfileView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        return UserDetailView().get(request, pk)
 
     def patch(self, request, pk):
         role_name = request.user.get_role_name()
@@ -84,6 +113,42 @@ class EditUserProfileView(APIView):
             serializer.save()
             return Response({'message': 'Profile updated successfully.', 'data': serializer.data})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RoleListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        roles = Role.objects.all().order_by('name')
+        return Response(RoleSerializer(roles, many=True).data)
+
+
+class StateListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        states = State.objects.all().order_by('name')
+        return Response([{'id': state.id, 'name': state.name} for state in states])
+
+
+class DistrictListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        districts = District.objects.select_related('state').all().order_by('state__name', 'name')
+        return Response([{
+            'id': district.id,
+            'name': district.name,
+            'state': district.state.name if district.state else None,
+        } for district in districts])
+
+
+class StateDistrictsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, state_id):
+        districts = District.objects.filter(state_id=state_id).order_by('name')
+        return Response([{'id': district.id, 'name': district.name} for district in districts])
 
 
 class CreatePermissionView(APIView):

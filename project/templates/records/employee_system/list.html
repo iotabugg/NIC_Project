@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Employee System Details — EMS Portal{% endblock %}
+{% block page_title %}Employee System Details{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+  <p class="text-sm text-gray-500">{{ systems.count }} system{{ systems.count|pluralize }} total</p>
+  <a href="{% url 'employee-system-create' %}"
+     class="bg-blue-900 text-white text-sm px-4 py-2 rounded hover:bg-blue-800 transition">
+    + Add System Details
+  </a>
+</div>
+
+<!-- Search -->
+<div class="mb-4">
+  <input type="text" id="search-input" placeholder="Search by employee ID or computer name..."
+         class="w-full max-w-sm border border-gray-300 rounded px-3 py-2 text-sm
+                focus:outline-none focus:ring-2 focus:ring-blue-500" />
+</div>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50 border-b border-gray-200">
+      <tr>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Employee ID</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Computer Name</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">IP Address</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">OS</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for system in systems %}
+      <tr class="hover:bg-gray-50 transition system-row">
+        <td class="px-4 py-3 font-medium text-gray-800">{{ system.employee.employee_id }}</td>
+        <td class="px-4 py-3 text-gray-600">{{ system.computer_name|default:"—" }}</td>
+        <td class="px-4 py-3 text-gray-600 font-mono text-xs">{{ system.ip_address|default:"—" }}</td>
+        <td class="px-4 py-3 text-gray-600">{{ system.get_operating_system_display|default:"—" }}</td>
+        <td class="px-4 py-3">
+          {% if system.is_active %}
+            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Active</span>
+          {% else %}
+            <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Inactive</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3">
+          <div class="flex items-center gap-3">
+            <a href="{% url 'employee-system-detail' system.pk %}" class="text-blue-600 hover:underline">View</a>
+            <a href="{% url 'employee-system-edit' system.pk %}" class="text-blue-600 hover:underline">Edit</a>
+            <form method="post" action="{% url 'employee-system-delete' system.pk %}"
+                  onsubmit="return confirm('Deactivate system details for {{ system.employee.employee_id }}?')" style="display: inline;">
+              {% csrf_token %}
+              <button type="submit" class="text-red-500 hover:underline">Deactivate</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="px-4 py-8 text-center text-gray-400">No system details found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  Auth.redirectIfNotLoggedIn();
+  document.getElementById('search-input').addEventListener('input', function () {
+    const query = this.value.toLowerCase();
+    document.querySelectorAll('.system-row').forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
+    });
+  });
+</script>
+{% endblock %}

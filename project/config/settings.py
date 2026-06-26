@@ -19,9 +19,15 @@ INSTALLED_APPS = [
     'django_extensions',
     'rest_framework',
     'rest_framework_simplejwt',
+    'tailwind',
+    'theme',
     'records',
     'users',
 ]
+
+TAILWIND_APP_NAME = 'theme'
+INTERNAL_IPS = ['127.0.0.1']
+NPM_BIN_PATH = config('NPM_BIN_PATH', default='/usr/local/bin/npm')  
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -38,7 +44,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -49,6 +55,8 @@ TEMPLATES = [
         },
     },
 ]
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 WSGI_APPLICATION = 'config.wsgi.application'
 

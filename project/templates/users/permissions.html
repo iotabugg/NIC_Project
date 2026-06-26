@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Permissions — EMS Portal{% endblock %}
+{% block page_title %}Permissions{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <p class="text-sm text-gray-500">Permissions define access rights for user roles.</p>
+  </div>
+  <a href="{% url 'users-permission-create' %}" class="bg-blue-900 text-white text-sm px-4 py-2 rounded hover:bg-blue-800 transition">
+    + Add Permission
+  </a>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50 border-b border-gray-200">
+      <tr>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Name</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for permission in permissions %}
+      <tr class="hover:bg-gray-50 transition">
+        <td class="px-4 py-3 font-medium text-gray-800">{{ permission.name }}</td>
+        <td class="px-4 py-3">
+          <div class="flex items-center gap-3">
+            <a href="{% url 'users-permission-edit' permission.pk %}" class="text-blue-600 hover:underline">Edit</a>
+            <form method="post" action="{% url 'users-permission-delete' permission.pk %}" class="inline" onsubmit="return confirm('Delete this permission?');">
+              {% csrf_token %}
+              <button type="submit" class="text-red-500 hover:underline">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="2" class="px-4 py-8 text-center text-gray-400">No permissions found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} — EMS Portal{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl">
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <!-- Section: Basic Information -->
+      <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Basic Information</h3>
+      <div class="grid grid-cols-2 gap-4 mb-6">
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Employee <span class="text-red-500">*</span></label>
+          {{ form.employee }}
+          {% if form.employee.errors %}<p class="text-red-500 text-xs mt-1">{{ form.employee.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Transfer Date <span class="text-red-500">*</span></label>
+          {{ form.transfer_date }}
+          {% if form.transfer_date.errors %}<p class="text-red-500 text-xs mt-1">{{ form.transfer_date.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Effective Date</label>
+          {{ form.effective_date }}
+          {% if form.effective_date.errors %}<p class="text-red-500 text-xs mt-1">{{ form.effective_date.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Order Number</label>
+          {{ form.order_number }}
+          {% if form.order_number.errors %}<p class="text-red-500 text-xs mt-1">{{ form.order_number.errors.0 }}</p>{% endif %}
+        </div>
+
+      </div>
+
+      <!-- Section: From Details -->
+      <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">From</h3>
+      <div class="grid grid-cols-3 gap-4 mb-6">
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">From Office <span class="text-red-500">*</span></label>
+          {{ form.from_office }}
+          {% if form.from_office.errors %}<p class="text-red-500 text-xs mt-1">{{ form.from_office.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">From Department</label>
+          {{ form.from_department }}
+          {% if form.from_department.errors %}<p class="text-red-500 text-xs mt-1">{{ form.from_department.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">From Designation</label>
+          {{ form.from_designation }}
+          {% if form.from_designation.errors %}<p class="text-red-500 text-xs mt-1">{{ form.from_designation.errors.0 }}</p>{% endif %}
+        </div>
+
+      </div>
+
+      <!-- Section: To Details -->
+      <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">To</h3>
+      <div class="grid grid-cols-3 gap-4 mb-6">
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">To Office <span class="text-red-500">*</span></label>
+          {{ form.to_office }}
+          {% if form.to_office.errors %}<p class="text-red-500 text-xs mt-1">{{ form.to_office.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">To Department</label>
+          {{ form.to_department }}
+          {% if form.to_department.errors %}<p class="text-red-500 text-xs mt-1">{{ form.to_department.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">To Designation</label>
+          {{ form.to_designation }}
+          {% if form.to_designation.errors %}<p class="text-red-500 text-xs mt-1">{{ form.to_designation.errors.0 }}</p>{% endif %}
+        </div>
+
+      </div>
+
+      <!-- Section: Additional Information -->
+      <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Additional Information</h3>
+      <div class="grid grid-cols-2 gap-4 mb-6">
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Status <span class="text-red-500">*</span></label>
+          {{ form.status }}
+          {% if form.status.errors %}<p class="text-red-500 text-xs mt-1">{{ form.status.errors.0 }}</p>{% endif %}
+        </div>
+
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Reason</label>
+        {{ form.reason }}
+        {% if form.reason.errors %}<p class="text-red-500 text-xs mt-1">{{ form.reason.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
+        {{ form.remarks }}
+        {% if form.remarks.errors %}<p class="text-red-500 text-xs mt-1">{{ form.remarks.errors.0 }}</p>{% endif %}
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex items-center gap-3 pt-5 border-t border-gray-100">
+        <button type="submit"
+                class="bg-blue-900 text-white text-sm px-5 py-2 rounded hover:bg-blue-800 transition">
+          {{ action }} Transfer
+        </button>
+        <a href="{% url 'transfer-list' %}" class="text-sm text-gray-500 hover:text-gray-700">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>Auth.redirectIfNotLoggedIn();</script>
+{% endblock %}

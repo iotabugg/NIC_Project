@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Employee Transfers — EMS Portal{% endblock %}
+{% block page_title %}Employee Transfers{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+  <p class="text-sm text-gray-500">{{ transfers.count }} transfer{{ transfers.count|pluralize }} total</p>
+  <a href="{% url 'transfer-create' %}"
+     class="bg-blue-900 text-white text-sm px-4 py-2 rounded hover:bg-blue-800 transition">
+    + New Transfer
+  </a>
+</div>
+
+<!-- Filters -->
+<div class="flex flex-wrap gap-3 mb-4">
+  <input type="text" id="search-input" placeholder="Search by employee ID or order number..."
+         class="border border-gray-300 rounded px-3 py-2 text-sm w-64
+                focus:outline-none focus:ring-2 focus:ring-blue-500" />
+
+  <select id="status-filter"
+          class="border border-gray-300 rounded px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <option value="">All Statuses</option>
+    <option value="PENDING">Pending</option>
+    <option value="APPROVED">Approved</option>
+    <option value="REJECTED">Rejected</option>
+    <option value="COMPLETED">Completed</option>
+    <option value="CANCELLED">Cancelled</option>
+  </select>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50 border-b border-gray-200">
+      <tr>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Employee ID</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">From</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">To</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Transfer Date</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for transfer in transfers %}
+      <tr class="hover:bg-gray-50 transition transfer-row" data-status="{{ transfer.status }}">
+        <td class="px-4 py-3 font-medium text-gray-800">{{ transfer.employee.employee_id }}</td>
+        <td class="px-4 py-3 text-gray-600">
+          <div class="text-sm">{{ transfer.from_office.name }}</div>
+          <div class="text-xs text-gray-400">{{ transfer.from_department.name|default:"—" }}</div>
+        </td>
+        <td class="px-4 py-3 text-gray-600">
+          <div class="text-sm">{{ transfer.to_office.name }}</div>
+          <div class="text-xs text-gray-400">{{ transfer.to_department.name|default:"—" }}</div>
+        </td>
+        <td class="px-4 py-3 text-gray-600">{{ transfer.transfer_date|date:"d M Y" }}</td>
+        <td class="px-4 py-3">
+          {% if transfer.status == 'PENDING' %}
+            <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium">Pending</span>
+          {% elif transfer.status == 'APPROVED' %}
+            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Approved</span>
+          {% elif transfer.status == 'COMPLETED' %}
+            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Completed</span>
+          {% elif transfer.status == 'REJECTED' %}
+            <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Rejected</span>
+          {% elif transfer.status == 'CANCELLED' %}
+            <span class="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full font-medium">Cancelled</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3">
+          <div class="flex items-center gap-3">
+            <a href="{% url 'transfer-detail' transfer.pk %}" class="text-blue-600 hover:underline">View</a>
+            <a href="{% url 'transfer-edit' transfer.pk %}" class="text-blue-600 hover:underline">Edit</a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="px-4 py-8 text-center text-gray-400">No transfers found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  Auth.redirectIfNotLoggedIn();
+  
+  document.getElementById('search-input').addEventListener('input', function () {
+    const query = this.value.toLowerCase();
+    document.querySelectorAll('.transfer-row').forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
+    });
+  });
+  
+  document.getElementById('status-filter').addEventListener('change', function () {
+    const status = this.value;
+    document.querySelectorAll('.transfer-row').forEach(row => {
+      if (!status || row.dataset.status === status) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  });
+</script>
+{% endblock %}

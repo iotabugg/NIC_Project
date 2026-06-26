@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Departments — EMS Portal{% endblock %}
+{% block page_title %}Departments{% endblock %}
+
+{% block content %}
+
+<!-- Top bar -->
+<div class="flex items-center justify-between mb-6">
+  <p class="text-sm text-gray-500">{{ departments.count }} department{{ departments.count|pluralize }} total</p>
+  <a href="{% url 'dept-create' %}"
+     class="bg-blue-900 text-white text-sm px-4 py-2 rounded hover:bg-blue-800 transition">
+    + Add Department
+  </a>
+</div>
+
+<!-- Search (client-side) -->
+<div class="mb-4">
+  <input type="text" id="search-input" placeholder="Search departments..."
+         class="w-full max-w-sm border border-gray-300 rounded px-3 py-2 text-sm
+                focus:outline-none focus:ring-2 focus:ring-blue-500" />
+</div>
+
+<!-- Table -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+  <table class="w-full text-sm" id="dept-table">
+    <thead class="bg-gray-50 border-b border-gray-200">
+      <tr>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">#</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Name</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Code</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Description</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
+        <th class="text-left px-4 py-3 font-semibold text-gray-600">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for dept in departments %}
+      <tr class="hover:bg-gray-50 transition dept-row">
+        <td class="px-4 py-3 text-gray-400">{{ forloop.counter }}</td>
+        <td class="px-4 py-3 font-medium text-gray-800">{{ dept.name }}</td>
+        <td class="px-4 py-3 text-gray-600">{{ dept.code|default:"—" }}</td>
+        <td class="px-4 py-3 text-gray-500 max-w-xs truncate">{{ dept.description|default:"—" }}</td>
+        <td class="px-4 py-3">
+          {% if dept.is_active %}
+            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Active</span>
+          {% else %}
+            <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Inactive</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3">
+          <div class="flex items-center gap-3">
+            <a href="{% url 'dept-edit' dept.pk %}"
+               class="text-blue-600 hover:underline">Edit</a>
+
+            <form method="post" action="{% url 'dept-delete' dept.pk %}"
+                  onsubmit="return confirm('Deactivate {{ dept.name }}?')">
+              {% csrf_token %}
+              <button type="submit" class="text-red-500 hover:underline">Deactivate</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="px-4 py-8 text-center text-gray-400">No departments found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  Auth.redirectIfNotLoggedIn();
+
+  // Client-side search
+  document.getElementById('search-input').addEventListener('input', function () {
+    const query = this.value.toLowerCase();
+    document.querySelectorAll('.dept-row').forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(query) ? '' : 'none';
+    });
+  });
+</script>
+{% endblock %}
