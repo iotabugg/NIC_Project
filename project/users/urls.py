@@ -1,6 +1,7 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth import login as django_login
 
 from .views import (
     RegisterUserView,
@@ -32,6 +33,19 @@ class CustomTokenSerializer(TokenObtainPairSerializer):
 
 class CustomTokenView(TokenObtainPairView):
     serializer_class = CustomTokenSerializer
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        
+        if response.status_code == 200:
+            # Get the user and create a Django session
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            username = request.data.get('username')
+            user = User.objects.get(username=username)
+            django_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        
+        return response
 
 
 urlpatterns = [

@@ -14,8 +14,10 @@ def home(request):
         return redirect('dashboard')
     return redirect('login')
 
-
 def dashboard(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
     """Comprehensive dashboard with summary statistics and quick actions."""
     dashboard_data = DashboardService.get_summary(request.user)
     
