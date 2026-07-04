@@ -38,16 +38,22 @@ class UserListView(APIView):
     def get(self, request):
         role_name = request.user.get_role_name()
 
+        # Build queryset based on user's role and permissions
         if role_name == 'STATE_ADMIN':
-            users = User.objects.select_related('role', 'state', 'district').all()
+            # STATE_ADMIN can see all users in the system
+            users = User.objects.filter(is_active=True).select_related('role', 'state', 'district').all()
         elif role_name == 'DISTRICT_ADMIN':
-            users = User.objects.select_related('role', 'state', 'district').filter(
+            # DISTRICT_ADMIN can see all users in their district
+            users = User.objects.filter(
+                is_active=True,
                 district=request.user.district
-            )
+            ).select_related('role', 'state', 'district')
         else:
-            users = User.objects.select_related('role', 'state', 'district').filter(
+            # COMMON_USER and other roles can only see themselves
+            users = User.objects.filter(
+                is_active=True,
                 id=request.user.id
-            )
+            ).select_related('role', 'state', 'district')
 
         return Response(UserSerializer(users, many=True).data)
 

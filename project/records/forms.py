@@ -1,5 +1,7 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from .models import Department, Designation, Office, Employee, EmployeeSystem, EmployeeTransfer
+from users.models import State, District
 
 
 class DepartmentForm(forms.ModelForm):
@@ -44,26 +46,63 @@ class DesignationForm(forms.ModelForm):
 
 
 class OfficeForm(forms.ModelForm):
+    # Add state field to enable state-based district filtering
+    state = forms.ModelChoiceField(
+        queryset=State.objects.all().order_by('name'),
+        required=True,
+        empty_label="Select State",
+        label="State"
+    )
+
     class Meta:
         model = Office
         fields = ['name', 'code', 'office_type', 'district', 'address', 'phone', 'email', 'is_active']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+        # Apply Tailwind styling to all fields
+        base_class = (
+            'w-full border border-gray-300 rounded px-3 py-2 text-sm '
+            'focus:outline-none focus:ring-2 focus:ring-blue-500'
+        )
+        
         for name, field in self.fields.items():
             if name == 'is_active':
                 field.widget.attrs.update({'class': 'h-4 w-4 text-blue-600'})
             elif name in ('address',):
                 field.widget = forms.Textarea(attrs={
-                    'class': 'w-full border border-gray-300 rounded px-3 py-2 text-sm '
-                             'focus:outline-none focus:ring-2 focus:ring-blue-500',
+                    'class': base_class,
                     'rows': 2,
                 })
             else:
-                field.widget.attrs.update({
-                    'class': 'w-full border border-gray-300 rounded px-3 py-2 text-sm '
-                             'focus:outline-none focus:ring-2 focus:ring-blue-500'
-                })
+                field.widget.attrs.update({'class': base_class})
+        
+        # If editing an existing office, set the state field to the current district's state
+        if self.instance and self.instance.pk and self.instance.district:
+            self.fields['state'].initial = self.instance.district.state
+            # Limit district choices to districts in the selected state
+            self.fields['district'].queryset = District.objects.filter(
+                state=self.instance.district.state
+            ).order_by('name')
+        else:
+            # For new offices, show all districts initially
+            self.fields['district'].queryset = District.objects.all().order_by('state__name', 'name')
+
+    def clean(self):
+        """Validate that the selected district belongs to the selected state."""
+        cleaned_data = super().clean()
+        state = cleaned_data.get('state')
+        district = cleaned_data.get('district')
+        
+        if state and district:
+            if district.state != state:
+                raise ValidationError(
+                    "The selected district does not belong to the selected state. "
+                    "Please select a district from the same state."
+                )
+        
+        return cleaned_data
 
 class EmployeeForm(forms.ModelForm):
     class Meta:
